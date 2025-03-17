@@ -1,27 +1,12 @@
-# Use an official Python runtime as a parent image
-FROM python:3.9-slim
+RUN apt-get update && apt-get install -y wget curl unzip gnupg
 
-# Set the working directory
-WORKDIR /app
+# Add Google’s repository for the latest Chrome
+RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update && apt-get install -y google-chrome-stable
 
-# Install required system dependencies
-RUN apt-get update && apt-get install -y \
-    wget \
-    curl \
-    unzip \
-    chromium-browser \
-    chromium-chromedriver
-
-# Set environment variables to make ChromeDriver work
-ENV CHROMIUM_PATH="/usr/bin/chromium"
-ENV CHROMEDRIVER_PATH="/usr/bin/chromedriver"
-
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the application code
-COPY . .
-
-# Run the script
-CMD ["python", "scraperMAP.py"]
+# Install ChromeDriver (match Chrome version)
+RUN CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d'.' -f1) && \
+    wget -q "https://chromedriver.storage.googleapis.com/${CHROME_VERSION}.0/chromedriver_linux64.zip" -O /tmp/chromedriver.zip && \
+    unzip /tmp/chromedriver.zip -d /usr/local/bin/ && \
+    chmod +x /usr/local/bin/chromedriver
