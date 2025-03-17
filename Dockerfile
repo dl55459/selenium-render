@@ -7,10 +7,10 @@ WORKDIR /app
 # Install required system dependencies
 RUN apt-get update && apt-get install -y \
     wget \
-    unzip \
     curl \
-    chromium \
-    chromium-driver
+    unzip \
+    chromium-browser \
+    chromium-chromedriver
 
 # Set environment variables to make ChromeDriver work
 ENV CHROMIUM_PATH="/usr/bin/chromium"
