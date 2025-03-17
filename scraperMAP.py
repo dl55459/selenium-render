@@ -8,7 +8,9 @@ chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")  
 
 # Ensure ChromeDriver is correctly detected
-chrome_driver_path = "/usr/bin/chromedriver"  # Updated path
+chrome_options.binary_location = "/usr/bin/chromium-browser"
+chrome_driver_path = "/usr/bin/chromedriver"
+
 
 # Start ChromeDriver service
 service = Service(chrome_driver_path)
