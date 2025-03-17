@@ -1,53 +1,31 @@
-# Use a slim Python image
-FROM python:3.10-slim
-
-# Set environment variables
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    wget \
-    curl \
-    unzip \
-    gnupg \
-    && rm -rf /var/lib/apt/lists/*
-
-# Add Google Chrome repository and install Chrome
-RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | tee /usr/share/keyrings/google-chrome-keyring.gpg > /dev/null && \
-    echo "deb [signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list && \
-    apt-get update && apt-get install -y google-chrome-stable && \
-    rm -rf /var/lib/apt/lists/*
-
-# Verify Chrome installation
-RUN google-chrome --version
-
-# Set the correct ChromeDriver version (based on Chrome version)
-ENV CHROMEDRIVER_VERSION=134.0.6998.88
-
-# Download and install ChromeDriver
-RUN wget -q "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/${CHROMEDRIVER_VERSION}/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip && \
-    unzip /tmp/chromedriver.zip -d /usr/local/bin/ && \
-    mv /usr/local/bin/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
-    chmod +x /usr/local/bin/chromedriver && \
-    rm -rf /tmp/chromedriver.zip /usr/local/bin/chromedriver-linux64
-
-# Fix permissions issue
-RUN chmod 755 /usr/local/bin/chromedriver
-
-# Verify ChromeDriver installation
-RUN ls -l /usr/local/bin/chromedriver && /usr/local/bin/chromedriver --version
+# Use an official Python runtime as a parent image
+FROM python:3.9-slim
 
 # Set the working directory
 WORKDIR /app
 
-# Copy project files
-COPY . .
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    unzip \
+    gnupg \
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
+    && wget -N https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip \
+    && unzip chromedriver_linux64.zip \
+    && chmod +x chromedriver \
+    && mv -f chromedriver /usr/local/bin/chromedriver \
+    && rm chromedriver_linux64.zip \
+    && apt-get clean
 
-# Install Python dependencies
+# Copy the requirements file and install Python dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose necessary ports
-EXPOSE 8080
+# Copy the application code
+COPY . .
 
-# Run the script
+# Run the application
 CMD ["python", "scraperMAP.py"]
