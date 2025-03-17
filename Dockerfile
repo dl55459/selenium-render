@@ -21,12 +21,13 @@ RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
 # Verify Chrome installation
 RUN google-chrome --version
 
-# Manually set a working ChromeDriver version (check the latest at https://chromedriver.chromium.org/downloads)
-ENV CHROMEDRIVER_VERSION=122.0.6261.94
+# Manually set the correct ChromeDriver version (update this based on Chrome version)
+ENV CHROMEDRIVER_VERSION=134.0.6998.88
 
 # Download and install ChromeDriver
-RUN wget -q "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip" -O /tmp/chromedriver.zip && \
+RUN wget -q "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/${CHROMEDRIVER_VERSION}/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip && \
     unzip /tmp/chromedriver.zip -d /usr/local/bin/ && \
+    mv /usr/local/bin/chromedriver-linux64 /usr/local/bin/chromedriver && \
     chmod +x /usr/local/bin/chromedriver
 
 # Verify ChromeDriver installation
