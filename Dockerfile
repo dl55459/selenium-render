@@ -1,20 +1,26 @@
-# Use an official Python runtime
+# Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
-# Install dependencies
+# Install required system dependencies
 RUN apt-get update && apt-get install -y \
-    wget unzip curl \
-    chromium chromium-driver \
-    && rm -rf /var/lib/apt/lists/*
+    wget \
+    unzip \
+    curl \
+    chromium \
+    chromium-driver
 
-# Install Python packages
+# Set environment variables to make ChromeDriver work
+ENV CHROMIUM_PATH="/usr/bin/chromium"
+ENV CHROMEDRIVER_PATH="/usr/bin/chromedriver"
+
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy the rest of the application code
 COPY . .
 
 # Run the script
