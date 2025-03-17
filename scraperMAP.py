@@ -1,24 +1,19 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import time
-import csv
-import os
 
-# Set up Chrome options for headless mode
+# Set Chrome options for headless mode
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument("--headless")  # Run in headless mode
-chrome_options.add_argument("--no-sandbox")  # Disable sandboxing
-chrome_options.add_argument("--disable-dev-shm-usage")  # Disable shared memory usage
+chrome_options.add_argument("--headless")  
+chrome_options.add_argument("--no-sandbox")  
+chrome_options.add_argument("--disable-dev-shm-usage")  
 
-# Set the path to ChromeDriver
-chrome_driver_path = "/usr/local/bin/chromedriver"
+# Ensure ChromeDriver is correctly detected
+chrome_driver_path = "/usr/bin/chromedriver"  # Updated path
 
-# Set up ChromeDriver service
-service = Service(executable_path=chrome_driver_path)
+# Start ChromeDriver service
+service = Service(chrome_driver_path)
 driver = webdriver.Chrome(service=service, options=chrome_options)
+
 
 # Open the Google My Maps link
 url = "https://www.google.com/maps/d/viewer?mid=1UUfwmW5YntQiVznItYrXwHYn1D9eGkgU&femb=1&ll=5.008162640544454%2C-68.52131693613987&z=1"
