@@ -1,18 +1,18 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 
 # Configure Chrome options
 chrome_options = Options()
-chrome_options.add_argument("--headless")  # Run in headless mode if needed
+chrome_options.add_argument("--headless")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
-# Connect to the Selenium server (use the service name if in Docker network)
+# Connect to the Selenium server
 driver = webdriver.Remote(
     command_executor='http://localhost:4444/wd/hub',
     options=chrome_options
 )
-
 # Start ChromeDriver service
 service = Service(chrome_driver_path)
 driver = webdriver.Chrome(service=service, options=chrome_options)
