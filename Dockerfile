@@ -1,28 +1,32 @@
-# Use the official Selenium Chrome standalone image
-FROM selenium/standalone-chrome:4.11.0-20230801
+# Use official Selenium Chrome image
+FROM selenium/standalone-chrome:4.15.0-20231127
 
-# Switch to root user to install Python and dependencies
+# Switch to root for package installation
 USER root
 
-# Install Python and pip
+# Install Python and dependencies
 RUN apt-get update && apt-get install -y \
     python3 \
-    python3-pip
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy requirements and install dependencies
+# Copy requirements and install
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copy the application code
+# Copy application files
 COPY . .
 
-# Switch back to the seluser for security
+# Add health check
+HEALTHCHECK --interval=5s --timeout=30s --retries=3 \
+    CMD curl --fail http://localhost:4444/wd/hub/status || exit 1
+
+# Switch back to selenium user
 USER 1200
 
-# Start the Selenium server and run the Python script
-CMD (sudo -u seluser xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" selenium-standalone start &) && \
-    sleep 10 && \
-    python3 scraperMAP.py
+# Start Selenium server and run script
+CMD (./wait-for-selenium.sh && python3 scraperMAP.py) &
+    /opt/bin/entry_point.sh
