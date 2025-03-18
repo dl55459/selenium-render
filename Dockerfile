@@ -19,8 +19,10 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 # Copy the application code
 COPY . .
 
-# Switch back to the seluser for security (optional, adjust as needed)
+# Switch back to the seluser for security
 USER 1200
 
-# Run the application
-CMD ["python3", "scraperMAP.py"]
+# Start the Selenium server and run the Python script
+CMD (sudo -u seluser xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" selenium-standalone start &) && \
+    sleep 10 && \
+    python3 scraperMAP.py
