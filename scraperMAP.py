@@ -1,18 +1,25 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 # Configure Chrome options
-chrome_options = Options()
-chrome_options.add_argument("--headless")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
+options = Options()
+options.add_argument("--headless")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
 
-# Connect to the Selenium server
+# Connect to Selenium server
 driver = webdriver.Remote(
     command_executor='http://localhost:4444/wd/hub',
-    options=chrome_options
+    options=options
 )
+
+try:
+    driver.get("https://www.example.com")
+    print("Page title:", driver.title)
+finally:
+    driver.quit()
 
 # Start ChromeDriver service
 service = Service(chrome_driver_path)
