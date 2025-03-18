@@ -13,6 +13,7 @@ driver = webdriver.Remote(
     command_executor='http://localhost:4444/wd/hub',
     options=chrome_options
 )
+
 # Start ChromeDriver service
 service = Service(chrome_driver_path)
 driver = webdriver.Chrome(service=service, options=chrome_options)
