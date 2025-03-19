@@ -9,31 +9,27 @@ import csv
 import os
 import sys
 
-# Configure Firefox options
+# Configure Firefox for low resources
 options = Options()
 options.add_argument("--headless")
 options.add_argument("--disable-gpu")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
-options.add_argument("--window-size=1920,1080")
-options.set_preference("browser.download.folderList", 2)
-options.set_preference("browser.download.manager.showWhenStarting", False)
+options.add_argument("--window-size=800,600")
 
-# Initialize WebDriver with enhanced settings
+# Reduced timeouts for free tier
 try:
     service = Service(
-        executable_path="/usr/local/bin/geckodriver",
-        service_args=["--marionette-port", "2828"]
+        executable_path="/usr/local/bin/geckodriver"
     )
     
     driver = webdriver.Firefox(
         service=service,
-        options=options,
-        service_log_path=os.path.devnull  # Disable geckodriver logs
+        options=options
     )
-    wait = WebDriverWait(driver, 30)  # Increased timeout for cloud environment
+    wait = WebDriverWait(driver, 15)
 except Exception as e:
-    print(f"WebDriver initialization failed: {str(e)}")
+    print(f"Init error: {str(e)}")
     sys.exit(1)
 
 # Define all XPaths
