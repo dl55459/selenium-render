@@ -189,6 +189,21 @@ except Exception as e:
     print("2. Verify Firefox exists:", os.path.exists(FIREFOX_BIN))
     sys.exit(1)
     
+# Add after driver initialization
+print("\nSystem verification:")
+print("Geckodriver exists:", os.path.exists(GECKODRIVER_PATH))
+print("Firefox exists:", os.path.exists(FIREFOX_BIN))
+print("Current PATH:", os.environ["PATH"])
+
+# Test basic navigation
+try:
+    driver.get("about:blank")
+    print("Blank page loaded successfully")
+except Exception as e:
+    print("Basic navigation failed:", str(e))
+    driver.quit()
+    sys.exit(1)
+    
     # Main scraping logic
     driver.get("https://www.google.com/maps/d/viewer?mid=1UUfwmW5YntQiVznItYrXwHYn1D9eGkgU&femb=1&ll=5.008162640544454%2C-68.52131693613987&z=1")
 
