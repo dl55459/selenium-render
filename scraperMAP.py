@@ -156,8 +156,8 @@ xpaths = {
 
 
 # Correct paths for Render
-FIREFOX_BIN = "/usr/bin/firefox-esr"  # Verified path
-GECKODRIVER_PATH = "/usr/bin/geckodriver"  # New location
+FIREFOX_BIN = os.path.expandvars("$FIREFOX_BIN")
+GECKODRIVER_PATH = os.path.expandvars("$GECKODRIVER_PATH")
 
 # Firefox configuration - ADD ERROR HANDLING
 try:
@@ -175,7 +175,10 @@ try:
     options.add_argument("--window-size=800,600")
 
     # Before driver initialization
-    print("Verifying dependencies:")
+    print("\nSystem verification:")
+    print("Current directory:", os.getcwd())
+    print("Geckodriver path:", GECKODRIVER_PATH)
+    print("Firefox path:", FIREFOX_BIN)
     print("Geckodriver exists:", os.path.exists(GECKODRIVER_PATH))
     print("Firefox exists:", os.path.exists(FIREFOX_BIN))
 
@@ -211,11 +214,21 @@ print("Current PATH:", os.environ["PATH"])
 
 # Test basic navigation
 try:
-    driver.get("about:blank")
-    print("Blank page loaded successfully")
+    service = Service(
+        executable_path=GECKODRIVER_PATH,
+        log_path=os.devnull
+    )
+    driver = webdriver.Firefox(
+        service=service,
+        options=options
+    )
+    print("\nDriver initialized successfully!")
+    print("Browser version:", driver.capabilities['browserVersion'])
+    
+    # Rest of your scraping code...
+    
 except Exception as e:
-    print("Basic navigation failed:", str(e))
-    driver.quit()
+    print(f"\nDRIVER INIT ERROR: {str(e)}")
     sys.exit(1)
     
     # Main scraping logic
