@@ -1,39 +1,34 @@
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.firefox.options import Options
+import time
+import csv
+import os
 
-# Configure Chrome options
-options = Options()
-options.add_argument("--headless")
-options.add_argument("--no-sandbox")
-options.add_argument("--disable-dev-shm-usage")
+# Configure Firefox options
+firefox_options = Options()
+firefox_options.add_argument("-headless")  # Headless mode
+firefox_options.set_preference("dom.webnotifications.enabled", False)
+firefox_options.set_preference("browser.cache.disk.enable", False)
+firefox_options.set_preference("browser.cache.memory.enable", False)
+firefox_options.set_preference("browser.cache.offline.enable", False)
 
-# Connect to Selenium server
-driver = webdriver.Remote(
-    command_executor='http://localhost:4444/wd/hub',
-    options=options
-)
-
-try:
-    driver.get("https://www.example.com")
-    print("Page title:", driver.title)
-finally:
-    driver.quit()
-
-# Start ChromeDriver service
-service = Service(chrome_driver_path)
-driver = webdriver.Chrome(service=service, options=chrome_options)
-
+# Configure GeckoDriver path (update this to your path)
+driver_path = "I:/proj/geckodriver-win64/geckodriver.exe"
+service = Service(executable_path=driver_path)
+driver = webdriver.Firefox(service=service, options=firefox_options)
 
 # Open the Google My Maps link
 url = "https://www.google.com/maps/d/viewer?mid=1UUfwmW5YntQiVznItYrXwHYn1D9eGkgU&femb=1&ll=5.008162640544454%2C-68.52131693613987&z=1"
 driver.get(url)
 
 # Wait for the map to load
-wait = WebDriverWait(driver, 20)  # Increased timeout for slow loading
+wait = WebDriverWait(driver, 25)  # Increased timeout for Firefox
 
-# Define all XPaths at the beginning for better visibility
+# Define all XPaths
 xpaths = {
     # Parent folders and their subfolders
     "parent_folders": {
@@ -45,10 +40,98 @@ xpaths = {
                     'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[1]/div/div[3]/div[3]/div[2]/div',
                     'pins': 95
                 },
-                # Add other subfolders here
+                "Dammed": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[1]/div/div[3]/div[4]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[1]/div/div[3]/div[4]/div[2]/div',
+                    'pins': 60
+                },
+                "Abandoned Due to Disaster": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[1]/div/div[3]/div[5]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[1]/div/div[3]/div[5]/div[2]/div',
+                    'pins': 29
+                },
+                "Unbuilt Developments": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[1]/div/div[3]/div[6]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[1]/div/div[3]/div[6]/div[2]/div',
+                    'pins': 16
+                },
+                "Ghost Towns": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[1]/div/div[3]/div[7]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[1]/div/div[3]/div[7]/div[2]/div',
+                    'pins': 1196
+                }
             }
         },
-        # Add other parent folders here
+        "Abandoned/Historic Places": {
+            "closed": '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[2]/div/div',
+            "subfolders": {
+                "Abandoned Buildings": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[3]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[3]/div[2]/div',
+                    'pins': 88
+                },
+                "Abandoned Military Property": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[4]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[4]/div[2]/div',
+                    'pins': 75
+                },
+                "Historical Marker": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[5]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[5]/div[2]/div',
+                    'pins': 64
+                },
+                "Abandoned Mine": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[6]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[6]/div[2]/div',
+                    'pins': 54
+                },
+                "Abandoned Place": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[7]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[7]/div[2]/div',
+                    'pins': 50
+                },
+                "Theme Park": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[8]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[8]/div[2]/div',
+                    'pins': 41
+                },
+                "Abandoned Industrial Plant": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[9]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[9]/div[2]/div',
+                    'pins': 35
+                },
+                "Memorial": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[10]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[10]/div[2]/div',
+                    'pins': 28
+                },
+                "Abandoned Bridge": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[11]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[11]/div[2]/div',
+                    'pins': 22
+                },
+                "Historical Site": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[12]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[12]/div[2]/div',
+                    'pins': 17
+                },
+                "Abandoned Power Plant": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[13]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[13]/div[2]/div',
+                    'pins': 11
+                },
+                "Abandoned Mine2": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[14]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[14]/div[2]/div',
+                    'pins': 2
+                },
+                "Abandoned Bridge (Demolished)": {
+                    'xpath': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[15]/div[1]/div/div[2]/div',
+                    'location_base': '//*[@id="legendPanel"]/div/div/div[2]/div/div/div[2]/div[2]/div/div[3]/div[15]/div[2]/div',
+                    'pins': 1
+                }
+            }
+        }
     },
     # Name and description in the details panel
     "name": '//*[@id="featurecardPanel"]/div/div/div[4]/div[1]/div[1]/div[2]',
@@ -61,136 +144,117 @@ xpaths = {
     "back_button": '//*[@id="featurecardPanel"]/div/div/div[3]/div[1]/div'
 }
 
-# Function to safely click an element with retries
 def safe_click(element, max_retries=3):
     for attempt in range(max_retries):
         try:
-            driver.execute_script("arguments[0].scrollIntoView();", element)
-            time.sleep(1)  # Wait for the element to be in view
+            driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", element)
+            time.sleep(1)
             element.click()
             return True
         except Exception as e:
-            print(f"Attempt {attempt + 1}: Error clicking element - {str(e)}")
-            time.sleep(2)  # Wait before retrying
-    print("Max retries reached. Skipping this element.")
+            print(f"Attempt {attempt + 1}: Error clicking - {str(e)}")
+            time.sleep(2)
+    print("Max retries reached. Skipping element.")
     return False
 
-# Function to extract coordinates from the URL
 def extract_coordinates(url):
     try:
         if "dir//" in url:
-            # Extract the part of the URL between "dir//" and "&"
             coords_part = url.split("dir//")[1].split("&")[0]
             lat, lon = coords_part.split(",")
             return float(lat), float(lon)
-        else:
-            return None, None
+        return None, None
     except Exception as e:
-        print(f"Error extracting coordinates from URL: {str(e)}")
+        print(f"Coordinate extraction error: {str(e)}")
         return None, None
 
-# Function to generate a valid filename
-def generate_filename(parent_folder, child_folder):
-    # Replace spaces and special characters with underscores
-    parent_folder = parent_folder.replace(" ", "_").replace("/", "_").lower()
-    child_folder = child_folder.replace(" ", "_").replace("/", "_").lower()
-    return f"{parent_folder}_{child_folder}.csv"
+def generate_filename(parent, child):
+    clean_parent = parent.replace(" ", "_").replace("/", "_").lower()
+    clean_child = child.replace(" ", "_").replace("/", "_").lower()
+    return f"{clean_parent}_{clean_child}.csv"
 
-# Extract data from all parent folders and their subfolders
 try:
-    # Loop through each parent folder
     for folder_name, folder_data in xpaths["parent_folders"].items():
-        print(f"Processing parent folder: {folder_name}")
-
-        # Locate and expand the parent folder
+        print(f"\nProcessing: {folder_name}")
+        
+        # Open parent folder
         closed_folder = wait.until(EC.element_to_be_clickable((By.XPATH, folder_data["closed"])))
-        safe_click(closed_folder)
-        print(f"Expanded parent folder: {folder_name}")
-        time.sleep(1)  # Wait for the folder to expand
+        if safe_click(closed_folder):
+            print(f"Opened: {folder_name}")
+            time.sleep(2)
 
-        # Loop through each subfolder in the parent folder
-        for subfolder_name, subfolder_data in folder_data["subfolders"].items():
-            try:
-                print(f"Processing subfolder: {subfolder_name}")
-
-                # Locate and click the subfolder
-                subfolder = wait.until(EC.element_to_be_clickable((By.XPATH, subfolder_data['xpath'])))
-                safe_click(subfolder)
-                print(f"Clicked subfolder: {subfolder_name}")
-                time.sleep(1)  # Wait for the subfolder to load
-
-                # Initialize a list to store pins for this subfolder
+            for sub_name, sub_data in folder_data["subfolders"].items():
+                print(f"\n>> Subfolder: {sub_name}")
                 pins = []
+                
+                try:
+                    sub_element = wait.until(EC.element_to_be_clickable((By.XPATH, sub_data['xpath'])))
+                    if safe_click(sub_element):
+                        time.sleep(2)
+                        
+                        for idx in range(1, sub_data['pins'] + 1):
+                            try:
+                                loc_xpath = f"{sub_data['location_base']}[{idx}]"
+                                location = wait.until(EC.element_to_be_clickable((By.XPATH, loc_xpath)))
+                                
+                                if safe_click(location):
+                                    time.sleep(1.5)
+                                    
+                                    # Get details
+                                    name = driver.find_element(By.XPATH, xpaths["name"]).text
+                                    desc = driver.find_element(By.XPATH, xpaths["description"]).text
+                                    
+                                    # Get coordinates
+                                    nav_btn = driver.find_element(By.XPATH, xpaths["navigation_button"])
+                                    if safe_click(nav_btn):
+                                        main_window = driver.current_window_handle
+                                        new_window = [w for w in driver.window_handles if w != main_window][0]
+                                        driver.switch_to.window(new_window)
+                                        time.sleep(2)
+                                        
+                                        current_url = driver.current_url
+                                        lat, lon = extract_coordinates(current_url)
+                                        
+                                        driver.close()
+                                        driver.switch_to.window(main_window)
+                                        time.sleep(1)
+                                        
+                                        # Store data
+                                        pins.append({
+                                            "Name": name,
+                                            "Description": desc,
+                                            "Type": sub_name,
+                                            "Latitude": lat,
+                                            "Longitude": lon,
+                                            "Index": idx
+                                        })
+                                        
+                                        # Go back
+                                        back_btn = wait.until(EC.element_to_be_clickable((By.XPATH, xpaths["back_button"])))
+                                        safe_click(back_btn)
+                                        time.sleep(1)
+                                        
+                            except Exception as e:
+                                print(f"Error processing pin {idx}: {str(e)}")
+                                continue
+                                
+                except Exception as e:
+                    print(f"Subfolder error: {str(e)}")
+                    continue
+                
+                # Save CSV
+                if pins:
+                    filename = generate_filename(folder_name, sub_name)
+                    with open(filename, "w", newline="", encoding="utf-8") as f:
+                        writer = csv.DictWriter(f, fieldnames=pins[0].keys())
+                        writer.writeheader()
+                        writer.writerows(pins)
+                    print(f"Saved {len(pins)} entries to {filename}")
 
-                # Loop through all location elements in the subfolder
-                for index in range(1, subfolder_data['pins'] + 1):  # Loop from 1 to number of pins
-                    try:
-                        # Generate the XPath for the current location element
-                        location_xpath = f'{subfolder_data["location_base"]}[{index}]'
-                        print(f"Processing location {index} with XPath: {location_xpath}")
-
-                        # Locate the location element
-                        location = wait.until(EC.element_to_be_clickable((By.XPATH, location_xpath)))
-                        if not safe_click(location):
-                            print(f"Skipping location {index} due to click failure")
-                            continue
-                        print(f"Clicked location {index}")
-                        time.sleep(1)  # Wait for the details panel to load
-
-                        # Extract name and description
-                        name = driver.find_element(By.XPATH, xpaths["name"]).text
-                        description = driver.find_element(By.XPATH, xpaths["description"]).text
-
-                        # Click the navigation button to get coordinates
-                        nav_button = driver.find_element(By.XPATH, xpaths["navigation_button"])
-                        safe_click(nav_button)
-                        print("Clicked navigation button")
-
-                        # Switch to the new tab
-                        driver.switch_to.window(driver.window_handles[1])
-                        time.sleep(2)  # Wait for the tab to load
-
-                        # Extract coordinates from the URL
-                        current_url = driver.current_url
-                        lat, lon = extract_coordinates(current_url)
-
-                        print(f"Extracted coordinates: {lat}, {lon}")
-
-                        # Save the data
-                        pins.append({
-                            "Name": name,
-                            "Description": description,
-                            "Type": subfolder_name,
-                            "Latitude": lat,
-                            "Longitude": lon,
-                            "Index": index
-                        })
-
-                        # Close the new tab and switch back to the main tab
-                        driver.close()
-                        driver.switch_to.window(driver.window_handles[0])
-                        time.sleep(1)
-
-                        # Click the back button to return to the main side panel
-                        back_button = wait.until(EC.element_to_be_clickable((By.XPATH, xpaths["back_button"])))
-                        safe_click(back_button)
-                        print("Clicked back button")
-                        time.sleep(1)  # Wait for the side panel to reload
-                    except Exception as e:
-                        print(f"Error extracting location data in {subfolder_name} (index {index}): {str(e)}")
-
-                # Save the data for this subfolder to a CSV file
-                filename = generate_filename(folder_name, subfolder_name)
-                with open(filename, "w", newline="", encoding="utf-8") as file:
-                    writer = csv.DictWriter(file, fieldnames=["Name", "Description", "Type", "Latitude", "Longitude", "Index"])
-                    writer.writeheader()
-                    writer.writerows(pins)
-
-                print(f"Data saved to {filename}")
-            except Exception as e:
-                print(f"Error accessing subfolder {subfolder_name}: {str(e)}")
 except Exception as e:
-    print(f"Error accessing parent folder or subfolder: {str(e)}")
+    print(f"Fatal error: {str(e)}")
+    driver.save_screenshot("error_screenshot.png")
 
-# Close the browser
-driver.quit()
+finally:
+    driver.quit()
+    print("\nBrowser closed. Script completed.")
