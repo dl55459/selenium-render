@@ -5,5 +5,10 @@ services:
     runtime: python
     python:
       version: 3.9.16
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install -r requirements.txt
+      wget https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-linux64.tar.gz
+      tar -xvzf geckodriver*
+      chmod +x geckodriver
+      sudo mv geckodriver /usr/local/bin/
     startCommand: python3 scraperMAP.py
