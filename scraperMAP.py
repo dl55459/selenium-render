@@ -16,6 +16,9 @@ options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--window-size=1920,1080")
 
+print("Firefox version:", os.popen('firefox --version').read())
+print("Geckodriver version:", os.popen('geckodriver --version').read())
+
 # Configure service with error handling
 try:
     service = Service(
@@ -31,6 +34,8 @@ try:
 except Exception as e:
     print(f"Failed to initialize WebDriver: {str(e)}")
     raise
+
+print("WebDriver capabilities:", driver.capabilities)
 
 # Open the Google My Maps link
 url = "https://www.google.com/maps/d/viewer?mid=1UUfwmW5YntQiVznItYrXwHYn1D9eGkgU&femb=1&ll=5.008162640544454%2C-68.52131693613987&z=1"
