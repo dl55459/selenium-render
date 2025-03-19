@@ -18,6 +18,10 @@ driver = webdriver.Remote(
     options=options
 )
 
+# The URL you want to scrape goes HERE 👇
+target_url = "https://www.google.com/maps/d/viewer?mid=1UUfwmW5YntQiVznItYrXwHYn1D9eGkgU&femb=1&ll=5.008162640544454%2C-68.52131693613987&z=1"
+driver.get(target_url)  # This navigates to your target page
+
 # Define all XPaths
 xpaths = {
     # Parent folders and their subfolders
