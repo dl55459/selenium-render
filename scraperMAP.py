@@ -15,6 +15,7 @@ firefox_options.set_preference("dom.webnotifications.enabled", False)
 firefox_options.set_preference("browser.cache.disk.enable", False)
 firefox_options.set_preference("browser.cache.memory.enable", False)
 firefox_options.set_preference("browser.cache.offline.enable", False)
+firefox_options.set_preference("browser.link.open_newwindow", 3)
 
 # Configure GeckoDriver path (update this to your path)
 driver_path = "I:/proj/geckodriver-win64/geckodriver.exe"
