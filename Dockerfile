@@ -36,4 +36,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Start Xvfb and run script
-CMD Xvfb $DISPLAY -screen 0 1024x768x24 -ac +extension GLX +render -noreset & python scraperMAP.py
+CMD sh -c "rm -f /tmp/.X99-lock && Xvfb $DISPLAY -screen 0 1024x768x24 -ac +extension GLX +render -noreset & python scraperMAP.py"
