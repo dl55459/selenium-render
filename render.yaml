@@ -6,13 +6,20 @@ services:
     python:
       version: 3.9.16
     buildCommand: |
-      sudo apt-get update
-      sudo apt-get install -y firefox-esr xvfb xauth
+      # Install dependencies in project directory
+      mkdir -p .local/bin
       wget https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-linux64.tar.gz
-      tar -xvzf geckodriver*
-      chmod +x geckodriver
-      sudo mv geckodriver /usr/bin/  # Changed path
-      echo "Geckodriver path: $(which geckodriver)"
-      echo "Firefox path: $(which firefox-esr)"
+      tar -xvzf geckodriver* -C .local/bin
+      chmod +x .local/bin/geckodriver
+      
+      # Install Firefox ESR
+      wget https://download-installer.cdn.mozilla.net/pub/firefox/releases/115.10.0esr/linux-x86_64/en-US/firefox-115.10.0esr.tar.bz2
+      tar -xvjf firefox*.tar.bz2 -C .local
+      
+      # Set environment variables
+      echo 'export PATH="$PATH:$PWD/.local/bin:$PWD/.local/firefox"' >> .bashrc
+      echo 'export FIREFOX_BIN="$PWD/.local/firefox/firefox"' >> .bashrc
+      echo 'export GECKODRIVER_PATH="$PWD/.local/bin/geckodriver"' >> .bashrc
+      
       pip install -r requirements.txt
     startCommand: python3 scraperMAP.py
