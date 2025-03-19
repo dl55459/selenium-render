@@ -1,31 +1,33 @@
-FROM selenium/standalone-firefox:4.15.0
+# Use official Python image
+FROM python:3.9-slim
 
-USER root
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    wget \
+    firefox-esr \
+    libdbus-glib-1-2 \
     && rm -rf /var/lib/apt/lists/*
 
+# Install GeckoDriver
+RUN wget https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux64.tar.gz && \
+    tar -xzf geckodriver*.tar.gz -C /usr/local/bin && \
+    chmod +x /usr/local/bin/geckodriver && \
+    rm geckodriver*.tar.gz
+
+# Set working directory
 WORKDIR /app
 
+# Install Python dependencies
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy application code
 COPY . .
 
-# Set proper permissions
-RUN chmod +x wait-for-selenium.sh && \
-    chown -R seluser:seluser /app
-
-# Environment variables for Render
-ENV SE_NODE_PORT=4444
-ENV SE_NODE_OVERRIDE_MAX_SESSIONS=true
-ENV SE_NODE_MAX_SESSIONS=1
-
-EXPOSE 4444
-
-USER 1200
-
-CMD (./wait-for-selenium.sh && python3 scraperMAP.py) & \
-    /opt/bin/entry_point.sh
+# Run the scraper
+CMD ["python", "scraperMAP.py"]
