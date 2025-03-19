@@ -9,30 +9,6 @@ import csv
 import os
 import sys
 
-# Configure paths for Render
-FIREFOX_BIN = "/usr/bin/firefox-esr"
-GECKODRIVER_PATH = "/usr/local/bin/geckodriver"
-
-# Firefox configuration
-options = Options()
-options.binary_location = FIREFOX_BIN
-options.add_argument("--headless")
-options.add_argument("--disable-gpu")
-options.add_argument("--no-sandbox")
-options.add_argument("--window-size=800,600")
-
-try:
-    service = Service(
-        executable_path=GECKODRIVER_PATH,
-        log_path=os.devnull  # Disable logs
-    )
-    driver = webdriver.Firefox(
-        service=service,
-        options=options
-    )
-    wait = WebDriverWait(driver, 25)  # Increased timeout
-    print("Browser initialized successfully")
-
 # Define all XPaths
 xpaths = {
     # Parent folders and their subfolders
@@ -148,6 +124,31 @@ xpaths = {
     # Back button to return to the main side panel
     "back_button": '//*[@id="featurecardPanel"]/div/div/div[3]/div[1]/div'
 }
+
+
+# Configure paths for Render
+FIREFOX_BIN = "/usr/bin/firefox-esr"
+GECKODRIVER_PATH = "/usr/local/bin/geckodriver"
+
+# Firefox configuration
+options = Options()
+options.binary_location = FIREFOX_BIN
+options.add_argument("--headless")
+options.add_argument("--disable-gpu")
+options.add_argument("--no-sandbox")
+options.add_argument("--window-size=800,600")
+
+try:
+    service = Service(
+        executable_path=GECKODRIVER_PATH,
+        log_path=os.devnull  # Disable logs
+    )
+    driver = webdriver.Firefox(
+        service=service,
+        options=options
+    )
+    wait = WebDriverWait(driver, 25)  # Increased timeout
+    print("Browser initialized successfully")
 
 def safe_click(element, max_retries=2):
     for attempt in range(max_retries):
