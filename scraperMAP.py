@@ -7,6 +7,10 @@ from selenium.webdriver.firefox.options import Options
 import time
 import csv
 import os
+import subprocess
+
+print("Xvfb check:", subprocess.getoutput('ps aux | grep Xvfb'))
+print("Xauth check:", subprocess.getoutput('which xauth'))
 
 # Configure Firefox options
 options = Options()
