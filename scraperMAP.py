@@ -9,6 +9,35 @@ import csv
 import os
 import sys
 
+# Define all functions FIRST
+def safe_click(element, max_retries=2):
+    for attempt in range(max_retries):
+        try:
+            driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", element)
+            time.sleep(1)
+            element.click()
+            return True
+        except Exception as e:
+            print(f"Attempt {attempt + 1}: Error clicking - {str(e)}")
+            time.sleep(2)
+    return False
+
+def extract_coordinates(url):
+    try:
+        if "dir//" in url:
+            coords_part = url.split("dir//")[1].split("&")[0]
+            lat, lon = coords_part.split(",")
+            return float(lat), float(lon)
+        return None, None
+    except Exception as e:
+        print(f"Coordinate error: {str(e)}")
+        return None, None
+
+def generate_filename(parent, child):
+    clean_parent = parent.replace(" ", "_").replace("/", "_").lower()
+    clean_child = child.replace(" ", "_").replace("/", "_").lower()
+    return f"{clean_parent}_{clean_child}.csv"
+
 # Define all XPaths
 xpaths = {
     # Parent folders and their subfolders
@@ -126,11 +155,10 @@ xpaths = {
 }
 
 
-# Configure paths for Render
+# Configure paths and options
 FIREFOX_BIN = "/usr/bin/firefox-esr"
 GECKODRIVER_PATH = "/usr/local/bin/geckodriver"
 
-# Firefox configuration
 options = Options()
 options.binary_location = FIREFOX_BIN
 options.add_argument("--headless")
@@ -141,49 +169,17 @@ options.add_argument("--window-size=800,600")
 try:
     service = Service(
         executable_path=GECKODRIVER_PATH,
-        log_path=os.devnull  # Disable logs
+        log_path=os.devnull
     )
     driver = webdriver.Firefox(
         service=service,
         options=options
     )
-    wait = WebDriverWait(driver, 25)  # Increased timeout
+    wait = WebDriverWait(driver, 25)
     print("Browser initialized successfully")
-
-def safe_click(element, max_retries=2):
-    for attempt in range(max_retries):
-        try:
-            driver.execute_script(
-                "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'});",
-                element
-            )
-            time.sleep(1.5)
-            element.click()
-            time.sleep(0.5) 
-            return True
-        except Exception as e:
-            print(f"Attempt {attempt + 1}: Error clicking - {str(e)}")
-            time.sleep(2)
-    return False
-
-def extract_coordinates(url):
-    try:
-        if "dir//" in url:
-            coords_part = url.split("dir//")[1].split("&")[0]
-            return tuple(map(float, coords_part.split(",")))
-        return (None, None)
-    except Exception as e:
-        print(f"Coordinate error: {str(e)}")
-        return (None, None)
-
-def generate_filename(parent, child):
-    clean = lambda s: s.replace(" ", "_").replace("/", "_").lower()[:50]
-    return f"{clean(parent)}_{clean(child)}.csv"
-
-try:
-    # Navigate to target URL
+    
+    # Main scraping logic
     driver.get("https://www.google.com/maps/d/viewer?mid=1UUfwmW5YntQiVznItYrXwHYn1D9eGkgU&femb=1&ll=5.008162640544454%2C-68.52131693613987&z=1")
-    print("Loaded initial map page")
 
     # Process parent folders
     for folder_name, folder_data in xpaths["parent_folders"].items():
@@ -288,7 +284,7 @@ try:
             continue
 
 except Exception as e:
-    print(f"Initialization failed: {str(e)}")
+    print(f"Error: {str(e)}")
     sys.exit(1)
 
 finally:
