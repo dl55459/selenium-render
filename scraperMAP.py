@@ -8,15 +8,14 @@ import time
 import csv
 import os
 
-# Configure Firefox options
-firefox_options = Options()
-firefox_options.add_argument("-headless")
-firefox_options.set_preference("dom.webnotifications.enabled", False)
+options = Options()
+options.add_argument("-headless")
+options.set_preference("dom.webnotifications.enabled", False)
 
-# Connect to Selenium Grid
+# Use Render's internal network address
 driver = webdriver.Remote(
-    command_executor='http://localhost:4444/wd/hub',
-    options=firefox_options
+    command_executor='http://0.0.0.0:4444/wd/hub',
+    options=options
 )
 
 # Define all XPaths
