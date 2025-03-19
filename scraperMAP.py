@@ -32,9 +32,6 @@ try:
     )
     wait = WebDriverWait(driver, 25)  # Increased timeout
     print("Browser initialized successfully")
-    
-print("Memory stats:", driver.execute_script("return performance.memory"))
-print("User agent:", driver.execute_script("return navigator.userAgent"))
 
 # Define all XPaths
 xpaths = {
