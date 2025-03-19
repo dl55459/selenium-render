@@ -155,9 +155,9 @@ xpaths = {
 }
 
 
-# Configure paths for Render - UPDATED PATHS
-FIREFOX_BIN = "/usr/bin/firefox-esr"
-GECKODRIVER_PATH = "/usr/local/bin/geckodriver"
+# Correct paths for Render
+FIREFOX_BIN = "/usr/bin/firefox-esr"  # Verified path
+GECKODRIVER_PATH = "/usr/bin/geckodriver"  # New location
 
 # Firefox configuration - ADD ERROR HANDLING
 try:
@@ -174,6 +174,20 @@ try:
     options.add_argument("--no-sandbox")
     options.add_argument("--window-size=800,600")
 
+    # Before driver initialization
+    print("Verifying dependencies:")
+    print("Geckodriver exists:", os.path.exists(GECKODRIVER_PATH))
+    print("Firefox exists:", os.path.exists(FIREFOX_BIN))
+
+    # If paths are wrong, show alternatives
+    if not os.path.exists(GECKODRIVER_PATH):
+        print("Searching for geckodriver...")
+        os.system("find / -name geckodriver 2>/dev/null")
+
+    if not os.path.exists(FIREFOX_BIN):
+        print("Searching for Firefox...")
+        os.system("find / -name firefox* 2>/dev/null")
+        
     driver = webdriver.Firefox(
         service=service,
         options=options
