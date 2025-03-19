@@ -11,24 +11,30 @@ import sys
 
 # Configure Firefox options
 options = Options()
-options.add_argument("-headless")
+options.add_argument("--headless")
 options.add_argument("--disable-gpu")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--window-size=1920,1080")
+options.set_preference("browser.download.folderList", 2)
+options.set_preference("browser.download.manager.showWhenStarting", False)
 
-# Initialize WebDriver with error handling
+# Initialize WebDriver with enhanced settings
 try:
     service = Service(
         executable_path="/usr/local/bin/geckodriver",
-        log_output=os.devnull
+        service_args=["--marionette-port", "2828"]
     )
-    driver = webdriver.Firefox(service=service, options=options)
-    wait = WebDriverWait(driver, 25)  # Initialize wait here
+    
+    driver = webdriver.Firefox(
+        service=service,
+        options=options,
+        service_log_path=os.path.devnull  # Disable geckodriver logs
+    )
+    wait = WebDriverWait(driver, 30)  # Increased timeout for cloud environment
 except Exception as e:
-    print(f"Failed to initialize WebDriver: {str(e)}")
+    print(f"WebDriver initialization failed: {str(e)}")
     sys.exit(1)
-
 
 # Define all XPaths
 xpaths = {
