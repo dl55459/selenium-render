@@ -148,15 +148,16 @@ xpaths = {
     "back_button": '//*[@id="featurecardPanel"]/div/div/div[3]/div[1]/div'
 }
 
-def safe_click(element, max_retries=3):
+def safe_click(element, max_retries=2):
     for attempt in range(max_retries):
         try:
             driver.execute_script(
                 "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'});",
                 element
             )
-            time.sleep(1)
+            time.sleep(1.5)
             element.click()
+            time.sleep(0.5) 
             return True
         except Exception as e:
             print(f"Attempt {attempt + 1}: Error clicking - {str(e)}")
@@ -193,7 +194,7 @@ try:
             ))
             if safe_click(closed_folder):
                 print(f"Successfully opened {folder_name}")
-                time.sleep(2.5)  # Allow content to load
+                time.sleep(3.75)  # Allow content to load
                 
                 # Process subfolders
                 for sub_name, sub_data in folder_data["subfolders"].items():
@@ -206,7 +207,7 @@ try:
                             (By.XPATH, sub_data['xpath'])
                         ))
                         if safe_click(sub_element):
-                            time.sleep(2.5)  # Allow pins to load
+                            time.sleep(3.75)  # Allow pins to load
                             
                             # Process pins
                             for idx in range(1, sub_data['pins'] + 1):
@@ -218,7 +219,7 @@ try:
                                     ))
                                     
                                     if safe_click(location):
-                                        time.sleep(1.5)  # Wait for details panel
+                                        time.sleep(2.25)  # Wait for details panel
                                         
                                         # Extract details
                                         name = wait.until(EC.visibility_of_element_located(
@@ -235,7 +236,7 @@ try:
                                         if safe_click(nav_btn):
                                             # Switch to new tab
                                             driver.switch_to.window(driver.window_handles[1])
-                                            time.sleep(2)
+                                            time.sleep(3)
                                             
                                             # Extract coordinates
                                             current_url = driver.current_url
@@ -244,7 +245,7 @@ try:
                                             # Close tab and return
                                             driver.close()
                                             driver.switch_to.window(driver.window_handles[0])
-                                            time.sleep(1)
+                                            time.sleep(1.5)
                                             
                                             # Store data
                                             pins.append({
@@ -261,7 +262,7 @@ try:
                                                 (By.XPATH, xpaths["back_button"])
                                             ))
                                             safe_click(back_btn)
-                                            time.sleep(1)
+                                            time.sleep(1.5)
                                             
                                 except Exception as e:
                                     print(f"  Error processing pin {idx}: {str(e)}")
