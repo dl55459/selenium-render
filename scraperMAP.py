@@ -13,11 +13,16 @@ options.add_argument("-headless")
 options.set_preference("dom.webnotifications.enabled", False)
 
 # Use Render's internal network address
-driver = webdriver.Remote(
-    command_executor='http://0.0.0.0:4444/wd/hub',
-    options=options
+service = Service(
+    executable_path=driver_path,
+    port=4444  # Explicitly set the port
 )
 
+# Initialize driver
+driver = webdriver.Firefox(
+    service=service,
+    options=firefox_options
+)
 # The URL you want to scrape goes HERE 👇
 target_url = "https://www.google.com/maps/d/viewer?mid=1UUfwmW5YntQiVznItYrXwHYn1D9eGkgU&femb=1&ll=5.008162640544454%2C-68.52131693613987&z=1"
 driver.get(target_url)  # This navigates to your target page
