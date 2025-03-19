@@ -10,24 +10,14 @@ import os
 
 # Configure Firefox options
 firefox_options = Options()
-firefox_options.add_argument("-headless")  # Headless mode
+firefox_options.add_argument("-headless")
 firefox_options.set_preference("dom.webnotifications.enabled", False)
-firefox_options.set_preference("browser.cache.disk.enable", False)
-firefox_options.set_preference("browser.cache.memory.enable", False)
-firefox_options.set_preference("browser.cache.offline.enable", False)
-firefox_options.set_preference("browser.link.open_newwindow", 3)
 
-# Configure GeckoDriver path (update this to your path)
-driver_path = "I:/proj/geckodriver-win64/geckodriver.exe"
-service = Service(executable_path=driver_path)
-driver = webdriver.Firefox(service=service, options=firefox_options)
-
-# Open the Google My Maps link
-url = "https://www.google.com/maps/d/viewer?mid=1UUfwmW5YntQiVznItYrXwHYn1D9eGkgU&femb=1&ll=5.008162640544454%2C-68.52131693613987&z=1"
-driver.get(url)
-
-# Wait for the map to load
-wait = WebDriverWait(driver, 25)  # Increased timeout for Firefox
+# Connect to Selenium Grid
+driver = webdriver.Remote(
+    command_executor='http://localhost:4444/wd/hub',
+    options=firefox_options
+)
 
 # Define all XPaths
 xpaths = {
