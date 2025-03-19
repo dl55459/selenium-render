@@ -6,9 +6,11 @@ services:
     python:
       version: 3.9.16
     buildCommand: |
-      pip install -r requirements.txt
+      sudo apt-get update
+      sudo apt-get install -y firefox-esr xvfb
       wget https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-linux64.tar.gz
       tar -xvzf geckodriver*
       chmod +x geckodriver
       sudo mv geckodriver /usr/local/bin/
+      pip install -r requirements.txt
     startCommand: python3 scraperMAP.py
