@@ -4,34 +4,40 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.options import Options
+from pyvirtualdisplay import Display
 import time
 import csv
 import os
 import sys
 
-# Configure Firefox for low resources
+# Start virtual display for headless environment
+display = Display(visible=0, size=(800, 600))
+display.start()
+
+# Configure Firefox options
 options = Options()
 options.add_argument("--headless")
 options.add_argument("--disable-gpu")
 options.add_argument("--no-sandbox")
-options.add_argument("--disable-dev-shm-usage")
-options.add_argument("--window-size=800,600")
 
-# Reduced timeouts for free tier
+# Path configuration for Render
+FIREFOX_BIN = "/usr/bin/firefox"
+GECKODRIVER_PATH = "/usr/local/bin/geckodriver"
+
 try:
-    service = Service(
-        executable_path="/usr/local/bin/geckodriver"
-    )
+    options.binary_location = FIREFOX_BIN
+    service = Service(executable_path=GECKODRIVER_PATH)
     
     driver = webdriver.Firefox(
         service=service,
         options=options
     )
-    wait = WebDriverWait(driver, 15)
+    wait = WebDriverWait(driver, 20)
 except Exception as e:
-    print(f"Init error: {str(e)}")
+    print(f"WebDriver initialization failed: {str(e)}")
+    display.stop()
     sys.exit(1)
-
+    
 print("Memory stats:", driver.execute_script("return performance.memory"))
 print("User agent:", driver.execute_script("return navigator.userAgent"))
 
@@ -295,3 +301,4 @@ except Exception as e:
 finally:
     driver.quit()
     print("\nBrowser closed. Script execution completed.")
+    display.stop()
