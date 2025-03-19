@@ -10,10 +10,10 @@ import os
 import sys
 
 # Configure paths for Render
+FIREFOX_BIN = "/usr/bin/firefox-esr"
 GECKODRIVER_PATH = "/usr/local/bin/geckodriver"
-FIREFOX_BIN = "/usr/bin/firefox"  # Pre-installed in Render environment
 
-# Firefox options setup
+# Firefox configuration
 options = Options()
 options.binary_location = FIREFOX_BIN
 options.add_argument("--headless")
@@ -21,21 +21,17 @@ options.add_argument("--disable-gpu")
 options.add_argument("--no-sandbox")
 options.add_argument("--window-size=800,600")
 
-# Service configuration
 try:
     service = Service(
         executable_path=GECKODRIVER_PATH,
-        log_output=os.devnull  # Disable geckodriver logs
+        log_path=os.devnull  # Disable logs
     )
-    
     driver = webdriver.Firefox(
         service=service,
         options=options
     )
-    wait = WebDriverWait(driver, 20)
-except Exception as e:
-    print(f"WebDriver initialization failed: {str(e)}")
-    sys.exit(1)
+    wait = WebDriverWait(driver, 25)  # Increased timeout
+    print("Browser initialized successfully")
     
 print("Memory stats:", driver.execute_script("return performance.memory"))
 print("User agent:", driver.execute_script("return navigator.userAgent"))
@@ -294,11 +290,10 @@ try:
             continue
 
 except Exception as e:
-    print(f"\nCritical error: {str(e)}")
-    driver.save_screenshot("error_screenshot.png")
+    print(f"Initialization failed: {str(e)}")
+    sys.exit(1)
 
 finally:
-    driver.quit()
-    print("\nBrowser closed. Script execution completed.")
-    print("Scraping completed successfully")
-    display.stop()
+    if 'driver' in locals():
+        driver.quit()
+    print("Process completed")
