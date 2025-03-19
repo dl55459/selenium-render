@@ -32,6 +32,9 @@ except Exception as e:
     print(f"Init error: {str(e)}")
     sys.exit(1)
 
+print("Memory stats:", driver.execute_script("return performance.memory"))
+print("User agent:", driver.execute_script("return navigator.userAgent"))
+
 # Define all XPaths
 xpaths = {
     # Parent folders and their subfolders
