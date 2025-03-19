@@ -7,7 +7,7 @@ from selenium.webdriver.firefox.options import Options
 import time
 import csv
 import os
-import subprocess
+import sys
 
 # Configure Firefox options
 options = Options()
@@ -17,25 +17,18 @@ options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--window-size=1920,1080")
 
-# Updated service configuration
+# Initialize WebDriver with error handling
 try:
     service = Service(
         executable_path="/usr/local/bin/geckodriver",
-        log_output=os.devnull  # Correct parameter name
+        log_output=os.devnull
     )
-    
-    driver = webdriver.Firefox(
-        service=service,
-        options=options
-    )
+    driver = webdriver.Firefox(service=service, options=options)
+    wait = WebDriverWait(driver, 25)  # Initialize wait here
 except Exception as e:
     print(f"Failed to initialize WebDriver: {str(e)}")
-    raise
+    sys.exit(1)
 
-
-# Open the Google My Maps link
-url = "https://www.google.com/maps/d/viewer?mid=1UUfwmW5YntQiVznItYrXwHYn1D9eGkgU&femb=1&ll=5.008162640544454%2C-68.52131693613987&z=1"
-driver.get(url)
 
 # Define all XPaths
 xpaths = {
@@ -156,114 +149,143 @@ xpaths = {
 def safe_click(element, max_retries=3):
     for attempt in range(max_retries):
         try:
-            driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", element)
+            driver.execute_script(
+                "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'});",
+                element
+            )
             time.sleep(1)
             element.click()
             return True
         except Exception as e:
             print(f"Attempt {attempt + 1}: Error clicking - {str(e)}")
             time.sleep(2)
-    print("Max retries reached. Skipping element.")
     return False
 
 def extract_coordinates(url):
     try:
         if "dir//" in url:
             coords_part = url.split("dir//")[1].split("&")[0]
-            lat, lon = coords_part.split(",")
-            return float(lat), float(lon)
-        return None, None
+            return tuple(map(float, coords_part.split(",")))
+        return (None, None)
     except Exception as e:
-        print(f"Coordinate extraction error: {str(e)}")
-        return None, None
+        print(f"Coordinate error: {str(e)}")
+        return (None, None)
 
 def generate_filename(parent, child):
-    clean_parent = parent.replace(" ", "_").replace("/", "_").lower()
-    clean_child = child.replace(" ", "_").replace("/", "_").lower()
-    return f"{clean_parent}_{clean_child}.csv"
+    clean = lambda s: s.replace(" ", "_").replace("/", "_").lower()[:50]
+    return f"{clean(parent)}_{clean(child)}.csv"
 
 try:
-    for folder_name, folder_data in xpaths["parent_folders"].items():
-        print(f"\nProcessing: {folder_name}")
-        
-        # Open parent folder
-        closed_folder = wait.until(EC.element_to_be_clickable((By.XPATH, folder_data["closed"])))
-        if safe_click(closed_folder):
-            print(f"Opened: {folder_name}")
-            time.sleep(2)
+    # Navigate to target URL
+    driver.get("https://www.google.com/maps/d/viewer?mid=1UUfwmW5YntQiVznItYrXwHYn1D9eGkgU&femb=1&ll=5.008162640544454%2C-68.52131693613987&z=1")
+    print("Loaded initial map page")
 
-            for sub_name, sub_data in folder_data["subfolders"].items():
-                print(f"\n>> Subfolder: {sub_name}")
-                pins = []
+    # Process parent folders
+    for folder_name, folder_data in xpaths["parent_folders"].items():
+        print(f"\n=== Processing folder: {folder_name} ===")
+        
+        try:
+            # Open parent folder
+            closed_folder = wait.until(EC.element_to_be_clickable(
+                (By.XPATH, folder_data["closed"])
+            ))
+            if safe_click(closed_folder):
+                print(f"Successfully opened {folder_name}")
+                time.sleep(2.5)  # Allow content to load
                 
-                try:
-                    sub_element = wait.until(EC.element_to_be_clickable((By.XPATH, sub_data['xpath'])))
-                    if safe_click(sub_element):
-                        time.sleep(2)
+                # Process subfolders
+                for sub_name, sub_data in folder_data["subfolders"].items():
+                    print(f"\n  -> Subfolder: {sub_name}")
+                    pins = []
+                    
+                    try:
+                        # Open subfolder
+                        sub_element = wait.until(EC.element_to_be_clickable(
+                            (By.XPATH, sub_data['xpath'])
+                        ))
+                        if safe_click(sub_element):
+                            time.sleep(2.5)  # Allow pins to load
+                            
+                            # Process pins
+                            for idx in range(1, sub_data['pins'] + 1):
+                                try:
+                                    # Click pin
+                                    loc_xpath = f"{sub_data['location_base']}[{idx}]"
+                                    location = wait.until(EC.element_to_be_clickable(
+                                        (By.XPATH, loc_xpath)
+                                    ))
+                                    
+                                    if safe_click(location):
+                                        time.sleep(1.5)  # Wait for details panel
+                                        
+                                        # Extract details
+                                        name = wait.until(EC.visibility_of_element_located(
+                                            (By.XPATH, xpaths["name"])
+                                        )).text
+                                        desc = wait.until(EC.visibility_of_element_located(
+                                            (By.XPATH, xpaths["description"])
+                                        )).text
+                                        
+                                        # Get coordinates
+                                        nav_btn = wait.until(EC.element_to_be_clickable(
+                                            (By.XPATH, xpaths["navigation_button"])
+                                        ))
+                                        if safe_click(nav_btn):
+                                            # Switch to new tab
+                                            driver.switch_to.window(driver.window_handles[1])
+                                            time.sleep(2)
+                                            
+                                            # Extract coordinates
+                                            current_url = driver.current_url
+                                            lat, lon = extract_coordinates(current_url)
+                                            
+                                            # Close tab and return
+                                            driver.close()
+                                            driver.switch_to.window(driver.window_handles[0])
+                                            time.sleep(1)
+                                            
+                                            # Store data
+                                            pins.append({
+                                                "Name": name,
+                                                "Description": desc,
+                                                "Type": sub_name,
+                                                "Latitude": lat,
+                                                "Longitude": lon,
+                                                "Index": idx
+                                            })
+                                            
+                                            # Return to list view
+                                            back_btn = wait.until(EC.element_to_be_clickable(
+                                                (By.XPATH, xpaths["back_button"])
+                                            ))
+                                            safe_click(back_btn)
+                                            time.sleep(1)
+                                            
+                                except Exception as e:
+                                    print(f"  Error processing pin {idx}: {str(e)}")
+                                    continue
+                                    
+                            # Save subfolder data
+                            if pins:
+                                filename = generate_filename(folder_name, sub_name)
+                                with open(filename, "w", newline="", encoding="utf-8") as f:
+                                    writer = csv.DictWriter(f, fieldnames=pins[0].keys())
+                                    writer.writeheader()
+                                    writer.writerows(pins)
+                                print(f"  Saved {len(pins)} entries to {filename}")
+                                
+                    except Exception as e:
+                        print(f"  Subfolder error: {str(e)}")
+                        continue
                         
-                        for idx in range(1, sub_data['pins'] + 1):
-                            try:
-                                loc_xpath = f"{sub_data['location_base']}[{idx}]"
-                                location = wait.until(EC.element_to_be_clickable((By.XPATH, loc_xpath)))
-                                
-                                if safe_click(location):
-                                    time.sleep(1.5)
-                                    
-                                    # Get details
-                                    name = driver.find_element(By.XPATH, xpaths["name"]).text
-                                    desc = driver.find_element(By.XPATH, xpaths["description"]).text
-                                    
-                                    # Get coordinates
-                                    nav_btn = driver.find_element(By.XPATH, xpaths["navigation_button"])
-                                    if safe_click(nav_btn):
-                                        main_window = driver.current_window_handle
-                                        new_window = [w for w in driver.window_handles if w != main_window][0]
-                                        driver.switch_to.window(new_window)
-                                        time.sleep(2)
-                                        
-                                        current_url = driver.current_url
-                                        lat, lon = extract_coordinates(current_url)
-                                        
-                                        driver.close()
-                                        driver.switch_to.window(main_window)
-                                        time.sleep(1)
-                                        
-                                        # Store data
-                                        pins.append({
-                                            "Name": name,
-                                            "Description": desc,
-                                            "Type": sub_name,
-                                            "Latitude": lat,
-                                            "Longitude": lon,
-                                            "Index": idx
-                                        })
-                                        
-                                        # Go back
-                                        back_btn = wait.until(EC.element_to_be_clickable((By.XPATH, xpaths["back_button"])))
-                                        safe_click(back_btn)
-                                        time.sleep(1)
-                                        
-                            except Exception as e:
-                                print(f"Error processing pin {idx}: {str(e)}")
-                                continue
-                                
-                except Exception as e:
-                    print(f"Subfolder error: {str(e)}")
-                    continue
-                
-                # Save CSV
-                if pins:
-                    filename = generate_filename(folder_name, sub_name)
-                    with open(filename, "w", newline="", encoding="utf-8") as f:
-                        writer = csv.DictWriter(f, fieldnames=pins[0].keys())
-                        writer.writeheader()
-                        writer.writerows(pins)
-                    print(f"Saved {len(pins)} entries to {filename}")
+        except Exception as e:
+            print(f"Folder error: {str(e)}")
+            continue
 
 except Exception as e:
-    print(f"Fatal error: {str(e)}")
+    print(f"\nCritical error: {str(e)}")
     driver.save_screenshot("error_screenshot.png")
 
 finally:
     driver.quit()
-    print("\nBrowser closed. Script completed.")
+    print("\nBrowser closed. Script execution completed.")
