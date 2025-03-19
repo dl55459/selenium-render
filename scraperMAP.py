@@ -13,14 +13,9 @@ options.add_argument("-headless")
 options.set_preference("dom.webnotifications.enabled", False)
 
 # Use Render's internal network address
-service = Service(
-    executable_path=driver_path,
-    port=4444  # Explicitly set the port
-)
-
-# Initialize driver
-driver = webdriver.Firefox(
-    service=service,
+# Connect to Grid Hub on port 4444
+driver = webdriver.Remote(
+    command_executor="http://localhost:4444/wd/hub",
     options=firefox_options
 )
 # The URL you want to scrape goes HERE 👇
