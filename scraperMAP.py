@@ -155,28 +155,39 @@ xpaths = {
 }
 
 
-# Configure paths and options
+# Configure paths for Render - UPDATED PATHS
 FIREFOX_BIN = "/usr/bin/firefox-esr"
 GECKODRIVER_PATH = "/usr/local/bin/geckodriver"
 
-options = Options()
-options.binary_location = FIREFOX_BIN
-options.add_argument("--headless")
-options.add_argument("--disable-gpu")
-options.add_argument("--no-sandbox")
-options.add_argument("--window-size=800,600")
-
+# Firefox configuration - ADD ERROR HANDLING
 try:
+    from selenium.webdriver.firefox.service import Service
     service = Service(
         executable_path=GECKODRIVER_PATH,
         log_path=os.devnull
     )
+    
+    options = Options()
+    options.binary_location = FIREFOX_BIN
+    options.add_argument("--headless")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--window-size=800,600")
+
     driver = webdriver.Firefox(
         service=service,
         options=options
     )
-    wait = WebDriverWait(driver, 25)
-    print("Browser initialized successfully")
+    print("Driver capabilities:", driver.capabilities)
+    print("Firefox version:", driver.capabilities['browserVersion'])
+    print("Geckodriver version:", driver.capabilities['moz:geckodriverVersion'])
+    
+except Exception as e:
+    print(f"DRIVER INIT ERROR: {str(e)}")
+    print("Potential solutions:")
+    print("1. Verify geckodriver exists:", os.path.exists(GECKODRIVER_PATH))
+    print("2. Verify Firefox exists:", os.path.exists(FIREFOX_BIN))
+    sys.exit(1)
     
     # Main scraping logic
     driver.get("https://www.google.com/maps/d/viewer?mid=1UUfwmW5YntQiVznItYrXwHYn1D9eGkgU&femb=1&ll=5.008162640544454%2C-68.52131693613987&z=1")
