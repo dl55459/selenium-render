@@ -1,36 +1,33 @@
-# Use official Selenium Firefox image
 FROM selenium/standalone-firefox:4.15.0
 
-# Switch to root for package installation
 USER root
 
-# Install system dependencies
+# Install dependencies
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /app
 
-# Copy requirements first for better caching
+# Copy requirements first
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copy application files
+# Copy application files with proper permissions
 COPY . .
+RUN chmod +x wait-for-selenium.sh && \
+    chown -R seluser:seluser /app
 
-# Create directory for downloads and set permissions
-RUN mkdir -p /home/seluser/downloads && \
-    chown -R seluser:seluser /app /home/seluser/downloads
+# Configure Render-specific settings
+ENV SE_NODE_PORT=4444
+ENV SE_NODE_OVERRIDE_MAX_SESSIONS=true
+ENV SE_NODE_MAX_SESSIONS=1
 
-# Health check for Render
-HEALTHCHECK --interval=5s --timeout=30s --retries=3 \
-    CMD curl --fail http://localhost:4444/wd/hub/status || exit 1
+# Expose required ports
+EXPOSE 4444 7900
 
-# Switch back to selenium user
 USER 1200
 
-# Start script
 CMD (./wait-for-selenium.sh && python3 scraperMAP.py) & \
     /opt/bin/entry_point.sh
