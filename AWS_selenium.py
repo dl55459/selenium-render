@@ -208,7 +208,7 @@ try:
                         name = driver.find_element(By.XPATH, xpaths["name"]).text
                         description = driver.find_element(By.XPATH, xpaths["description"]).text
 
-                        nav_button = driver.find_element(By.XPATH, xpaths["navigation_button"]))
+                        nav_button = driver.find_element(By.XPATH, xpaths["navigation_button"])
                         safe_click(nav_button)
 
                         if switch_to_new_tab():
